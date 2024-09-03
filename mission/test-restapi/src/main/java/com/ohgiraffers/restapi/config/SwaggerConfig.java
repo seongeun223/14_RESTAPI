@@ -1,4 +1,4 @@
-package com.ohgiraffers.restapi.section05.swagger;
+package com.ohgiraffers.restapi.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
