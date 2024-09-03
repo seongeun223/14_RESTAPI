@@ -1,6 +1,7 @@
 package com.ohgiraffers.restapi.section04.hateoas;
 
 import com.ohgiraffers.restapi.section03.valid.UserDTO;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/hateoas")
@@ -57,5 +61,36 @@ public class HateoasTestController {
                 .ok()
                 .headers(headers)
                 .body(new ResponseMessage(200, "조회 성공", responseMap));
+    }
+
+    // Hateoas 적용한 전체 조회
+    @GetMapping("/users")
+    public ResponseEntity<ResponseMessage> findAllUsers() {
+
+        // Header
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+
+        // EntityModel : hateoas 제공하는 클래스 rest api를 만들 때
+        //               해당 자원과 관련된 링크를 포함할 수 있게 해준다.
+        List<EntityModel<UserDTO>> userWithRel
+                = users.stream().map(user -> EntityModel.of(
+                        user,
+                        linkTo(methodOn(HateoasTestController.class)
+                                        .findUserByNo(user.getNo()))
+                                        .withSelfRel(),
+                        linkTo(methodOn(HateoasTestController.class)
+                                .findAllUsers())
+                                .withRel("users")
+        )).toList();
+
+        Map<String, Object> responseMap = new HashMap<>();
+
+        responseMap.put("users", userWithRel);
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .body(new ResponseMessage(200, "전체 조회 성공", responseMap));
     }
 }
